@@ -1,0 +1,9 @@
+header {
+ align-content: center;
+}
+
+article {
+  & img {
+    aspect-ratio: 1 / 1;
+  }
+}

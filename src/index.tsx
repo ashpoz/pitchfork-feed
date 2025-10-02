@@ -1,28 +1,29 @@
 import { Hono } from "hono";
 import { renderer } from "./renderer";
-import { getFeed, getImage } from "./lib/pitchfork-feed";
+import { getFeed } from "./lib/pitchfork-feed";
 
 const app = new Hono();
+
+type feedItem = {
+  id: string;
+  title: string;
+  link: string;
+  description: string;
+  image?: string | null;
+};
 
 app.get("*", renderer);
 
 app.get("/feed", async (c) => {
   const feedUrl = "https://pitchfork.com/feed/reviews/best/albums/rss";
-  const feed = await getFeed(feedUrl);
+  const feed = await getFeed({ url: feedUrl, feedKV: c.env });
 
-  const addImagesToFeed = feed.entries?.map(async (item) => {
-    const image = await getImage(item.link || "");
-    return { ...item, image };
-  })
-
-  const feedWithImages = await Promise.all(addImagesToFeed || []);
-
-  return c.json(feedWithImages);
+  return c.json(feed);
 });
 
 app.get("/", async (c) => {
   const feedUrl = "https://pitchfork.com/feed/reviews/best/albums/rss";
-  const feed = await getFeed(feedUrl);
+  const feed = await getFeed({url: feedUrl, feedKV: c.env});
 
   return c.render(
     <>
@@ -30,13 +31,16 @@ app.get("/", async (c) => {
         <h1>Pitchfork Feed</h1>
       </header>
       <main class="container">
-        {feed.entries?.map(async (item) => {
+        {feed?.map(async (item: feedItem) => {
           return (
             <article key={item.id}>
-              <header>
-                {item.title}
-              </header>
-              <p>{item.description}</p>
+              <div class="grid">
+                <header>
+                  <h2>{item.title}</h2>
+                  <p>{item.description}</p>
+                </header>
+                <img src={item.image || ""} alt="" />
+              </div>
               <footer>
                 <a href={item.link} target="_blank" rel="noopener noreferrer">
                   Read Review
