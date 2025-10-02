@@ -17,7 +17,7 @@ export async function getFeed(options: { url: string; feedKV?: KVNamespace }) {
     })
   );
 
-  await options.feedKV?.FEED_ENTRIES_BNM.put('pitchfork-feed', JSON.stringify(feedWithImages));
+  await options.feedKV?.FEED_ENTRIES_BNM.put('pitchfork-feed', JSON.stringify(feedWithImages), { expirationTtl: 7 * 24 * 60 * 60 }); // Cache expires in 7 days
 
   return feedWithImages;
 }
